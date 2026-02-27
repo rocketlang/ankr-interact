@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a"/>
+      <stop offset="100%" style="stop-color:#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="20" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Glow circle -->
+  <circle cx="512" cy="512" r="320" fill="#6366f1" opacity="0.08"/>
+
+  <!-- Open book left page -->
+  <path d="M200 300 L200 724 Q200 740 216 740 L510 740 L510 300 Q440 280 340 290 Q260 298 200 300 Z"
+        fill="url(#bookGrad)" opacity="0.9"/>
+  <!-- Book spine shadow -->
+  <rect x="505" y="300" width="14" height="440" fill="#4338ca" rx="2"/>
+  <!-- Open book right page -->
+  <path d="M824 300 L824 724 Q824 740 808 740 L514 740 L514 300 Q584 280 684 290 Q764 298 824 300 Z"
+        fill="url(#bookGrad)" opacity="0.75"/>
+
+  <!-- Left page lines -->
+  <rect x="240" y="380" width="220" height="12" rx="6" fill="white" opacity="0.4"/>
+  <rect x="240" y="420" width="200" height="10" rx="5" fill="white" opacity="0.3"/>
+  <rect x="240" y="456" width="210" height="10" rx="5" fill="white" opacity="0.3"/>
+  <rect x="240" y="492" width="180" height="10" rx="5" fill="white" opacity="0.3"/>
+  <rect x="240" y="528" width="195" height="10" rx="5" fill="white" opacity="0.3"/>
+  <rect x="240" y="564" width="170" height="10" rx="5" fill="white" opacity="0.3"/>
+
+  <!-- Right page lines -->
+  <rect x="560" y="380" width="220" height="12" rx="6" fill="white" opacity="0.3"/>
+  <rect x="560" y="420" width="200" height="10" rx="5" fill="white" opacity="0.2"/>
+  <rect x="560" y="456" width="215" height="10" rx="5" fill="white" opacity="0.2"/>
+  <rect x="560" y="492" width="185" height="10" rx="5" fill="white" opacity="0.2"/>
+  <rect x="560" y="528" width="200" height="10" rx="5" fill="white" opacity="0.2"/>
+
+  <!-- AI sparkle (top right of book) -->
+  <g filter="url(#glow)" transform="translate(690, 240)">
+    <polygon points="0,-50 12,-12 50,0 12,12 0,50 -12,12 -50,0 -12,-12" fill="#f59e0b"/>
+    <polygon points="0,-25 6,-6 25,0 6,6 0,25 -6,6 -25,0 -6,-6" fill="white" opacity="0.8"/>
+  </g>
+
+  <!-- Small sparkles -->
+  <polygon points="300,200 305,212 318,212 308,220 312,232 300,224 288,232 292,220 282,212 295,212"
+           fill="#a78bfa" opacity="0.7"/>
+  <polygon points="750,700 753,708 762,708 755,713 757,722 750,717 743,722 745,713 738,708 747,708"
+           fill="#60a5fa" opacity="0.7"/>
+</svg>

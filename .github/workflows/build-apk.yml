@@ -1,0 +1,250 @@
+name: Build Android APK
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile'
+        required: true
+        default: 'production'
+        type: choice
+        options: [production, preview, fdroid]
+      release:
+        description: 'Create GitHub Release'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Build via EAS (hosted CI) ───────────────────────────────────────────────
+  eas-build:
+    name: EAS Build — Android APK
+    runs-on: ubuntu-latest
+    environment: production
+    # Only runs when EXPO_TOKEN secret is available
+    if: ${{ vars.HAS_EAS == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: Determine build profile
+        id: profile
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "profile=production" >> $GITHUB_OUTPUT
+          else
+            echo "profile=${{ inputs.profile }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build APK via EAS
+        working-directory: mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build \
+            --platform android \
+            --profile ${{ steps.profile.outputs.profile }} \
+            --non-interactive \
+            --output ../ankr-interact-${{ steps.profile.outputs.profile }}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ankr-interact-apk-eas
+          path: '*.apk'
+          retention-days: 30
+
+  # ─── Build via local Gradle (no EAS account needed, for OSS/F-Droid) ────────
+  gradle-build:
+    name: Gradle Build — Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Export Expo JS bundle
+        working-directory: mobile
+        run: |
+          npx expo export --platform android --output-dir dist/
+
+      - name: Generate android/ directory (Expo prebuild)
+        working-directory: mobile
+        env:
+          EXPO_NO_TELEMETRY: 1
+        run: npx expo prebuild --platform android --clean
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            mobile/android/.gradle
+          key: gradle-${{ hashFiles('mobile/android/**/*.gradle*', 'mobile/android/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Build unsigned APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx3g"
+
+      - name: Rename APK
+        run: |
+          VERSION=$(node -p "require('./mobile/package.json').version")
+          cp mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk \
+             ankr-interact-v${VERSION}-unsigned.apk
+
+      - name: Upload unsigned APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ankr-interact-apk-unsigned
+          path: 'ankr-interact-*-unsigned.apk'
+          retention-days: 90
+
+  # ─── Sign APK (if keystore secret is available) ──────────────────────────────
+  sign-apk:
+    name: Sign APK
+    runs-on: ubuntu-latest
+    needs: gradle-build
+    if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download unsigned APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ankr-interact-apk-unsigned
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+
+      - name: Sign APK
+        run: |
+          VERSION=$(ls ankr-interact-*-unsigned.apk | sed 's/ankr-interact-\(.*\)-unsigned.apk/\1/')
+          jarsigner \
+            -verbose \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -keystore keystore.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            ankr-interact-${VERSION}-unsigned.apk \
+            "${{ secrets.KEY_ALIAS }}"
+          # zipalign for optimal APK layout
+          ${ANDROID_SDK_ROOT}/build-tools/34.0.0/zipalign -v 4 \
+            ankr-interact-${VERSION}-unsigned.apk \
+            ankr-interact-${VERSION}.apk
+
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ankr-interact-apk-signed
+          path: 'ankr-interact-v*.apk'
+          retention-days: 90
+
+  # ─── Create GitHub Release ────────────────────────────────────────────────────
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [gradle-build]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ankr-interact-apk-*
+          merge-multiple: true
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${{ github.ref_name }}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          # Extract changelog section for this version if it exists
+          if grep -q "## ${VERSION}" CHANGELOG.md 2>/dev/null; then
+            awk "/## ${VERSION}/,/## v/" CHANGELOG.md | head -n -1 > release_notes.md
+          else
+            echo "## ANKR Interact ${VERSION}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "Open source learning platform with AI characters, spaced repetition, comic strips, and offline bundles." >> release_notes.md
+            echo "" >> release_notes.md
+            echo "### Install" >> release_notes.md
+            echo "1. Download \`ankr-interact-${VERSION}-unsigned.apk\`" >> release_notes.md
+            echo "2. Enable 'Install from unknown sources' in Android Settings > Security" >> release_notes.md
+            echo "3. Tap the APK to install" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "### Self-Host" >> release_notes.md
+            echo "\`\`\`bash" >> release_notes.md
+            echo "docker compose up" >> release_notes.md
+            echo "\`\`\`" >> release_notes.md
+            echo "Then update server URL in app Settings → Server URL." >> release_notes.md
+            echo "" >> release_notes.md
+            echo "---" >> release_notes.md
+            echo "Apache 2.0 · [ANKR Labs](https://ankrlabs.in) · Made in India" >> release_notes.md
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ANKR Interact ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          files: |
+            ankr-interact-*.apk
+          token: ${{ secrets.GITHUB_TOKEN }}

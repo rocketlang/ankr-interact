@@ -1,0 +1,97 @@
+---
+# F-Droid build recipe for ANKR Interact
+# Package: in.ankr.interact
+# Repo: https://github.com/ankr-labs/ankr-interact
+#
+# This file describes how F-Droid builds ANKR Interact from source.
+# Submit to: https://gitlab.com/fdroid/fdroiddata via merge request
+# Add this file to: metadata/in.ankr.interact.yml
+
+Categories:
+  - Education
+
+License: Apache-2.0
+
+AuthorName: ANKR Labs
+AuthorEmail: hello@ankrlabs.in
+AuthorWebSite: https://ankrlabs.in
+
+WebSite: https://ankrinteract.com
+SourceCode: https://github.com/ankr-labs/ankr-interact
+IssueTracker: https://github.com/ankr-labs/ankr-interact/issues
+
+Name: ANKR Interact
+Summary: Open source learning platform with AI characters and offline bundles
+Description: |
+  ANKR Interact is a free, open source learning platform — think Obsidian +
+  Duolingo + Google Classroom, but self-hostable and ad-free.
+
+  Every study bundle can feature a cartoon AI tutor who narrates chapters aloud,
+  celebrates your progress, and explains concepts through visual comic strips.
+
+  Study content lives in .ib files — an open ZIP format containing chapters
+  (markdown), flashcards, MCQ quizzes, character data, comic strips, and audio.
+
+  Features:
+  * AI character tutors with TTS narration (device speech engine, no internet)
+  * Spaced repetition flashcards (SM-2 algorithm)
+  * MCQ quiz engine with instant feedback
+  * Comic strip chapter viewer
+  * Offline-first with background sync
+  * Multilingual (23 languages + RTL support)
+  * Universal File Vault for documents
+  * Open .ib bundle format — create, share, fork bundles freely
+  * Self-hostable server (Docker)
+
+  No ads. No tracking. No data selling. Apache 2.0.
+
+RepoType: git
+Repo: https://github.com/ankr-labs/ankr-interact
+
+Builds:
+  - versionName: '1.0.0'
+    versionCode: 10000
+    commit: v1.0.0
+    subdir: mobile
+    submodules: false
+
+    sudo:
+      - apt-get update
+      - apt-get install -y nodejs npm
+
+    init:
+      - npm install -g expo-cli@latest
+      - npm ci
+
+    prebuild:
+      - EXPO_NO_TELEMETRY=1 npx expo prebuild --platform android --clean
+
+    gradle:
+      - yes
+
+    gradleprops:
+      - SELF_HOSTED=true
+
+    scanignore:
+      - mobile/node_modules
+
+    ndk: 25.1.8937393
+
+    build:
+      - cd android && ./gradlew assembleRelease
+
+    binaries:
+      - mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+MaintainerNotes: |
+  Build uses Expo prebuild to generate the Android Gradle project from the
+  Expo config in mobile/app.json. The SELF_HOSTED=true flag disables cloud
+  features (AI generation limits) and enables full offline-first mode.
+
+  Node.js 22+ and JDK 17+ are required. The build does not require any
+  external API keys or cloud services.
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '1.0.0'
+CurrentVersionCode: 10000

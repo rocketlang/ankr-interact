@@ -1,0 +1,12 @@
+Initial release — ANKR Interact v1.0.0
+
+• AI character tutors with TTS narration
+• Spaced repetition flashcards (SM-2 algorithm)
+• Comic strip chapter viewer
+• .ib v2 bundle format support
+• Marketplace with 6 free study bundles
+• Offline-first sync engine
+• Universal file vault
+• Social Factory (LinkedIn, Twitter, WhatsApp, Newsletter, Instagram)
+• Character Studio — create AI tutors for your bundles
+• Apache 2.0 open source

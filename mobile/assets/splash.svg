@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1284 2778" width="1284" height="2778">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a"/>
+      <stop offset="50%" style="stop-color:#0f0720"/>
+      <stop offset="100%" style="stop-color:#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1284" height="2778" fill="url(#bg)"/>
+  <!-- Glow -->
+  <ellipse cx="642" cy="1389" rx="600" ry="600" fill="url(#glow)"/>
+
+  <!-- Book icon (centered) -->
+  <g transform="translate(642,1250)">
+    <!-- Left page -->
+    <path d="M-260,-200 L-260,200 Q-260,215 -246,215 L-10,215 L-10,-200 Q-60,-215 -140,-210 Q-210,-205 -260,-200 Z"
+          fill="url(#bookGrad)"/>
+    <!-- Spine -->
+    <rect x="-14" y="-200" width="28" height="415" fill="#4338ca" rx="3"/>
+    <!-- Right page -->
+    <path d="M260,-200 L260,200 Q260,215 246,215 L10,215 L10,-200 Q60,-215 140,-210 Q210,-205 260,-200 Z"
+          fill="url(#bookGrad)" opacity="0.8"/>
+    <!-- Lines left -->
+    <rect x="-230" y="-120" width="170" height="10" rx="5" fill="white" opacity="0.4"/>
+    <rect x="-230" y="-90" width="150" height="8" rx="4" fill="white" opacity="0.3"/>
+    <rect x="-230" y="-62" width="160" height="8" rx="4" fill="white" opacity="0.3"/>
+    <rect x="-230" y="-34" width="140" height="8" rx="4" fill="white" opacity="0.3"/>
+    <!-- Sparkle -->
+    <g transform="translate(200,-160)">
+      <polygon points="0,-35 8,-8 35,0 8,8 0,35 -8,8 -35,0 -8,-8" fill="#f59e0b"/>
+    </g>
+  </g>
+
+  <!-- App name -->
+  <text x="642" y="1560" text-anchor="middle"
+        font-family="-apple-system, system-ui, sans-serif" font-size="72" font-weight="700"
+        fill="white" opacity="0.95">ANKR Interact</text>
+  <text x="642" y="1630" text-anchor="middle"
+        font-family="-apple-system, system-ui, sans-serif" font-size="36"
+        fill="#6366f1" opacity="0.8">Learn anything. Own your knowledge.</text>
+</svg>

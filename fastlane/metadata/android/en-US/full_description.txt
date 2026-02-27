@@ -1,0 +1,43 @@
+ANKR Interact is a free, open source learning platform — think Obsidian + Duolingo + Google Classroom, but self-hostable and ad-free.
+
+<b>LEARN WITH AI CHARACTERS</b>
+Every study bundle can feature a cartoon AI tutor who narrates chapters aloud, celebrates your progress, and explains concepts through visual comic strips. Character voices are configurable — runs on your device's TTS, no internet needed.
+
+<b>SPACED REPETITION BUILT IN</b>
+Every flashcard deck uses the SM-2 algorithm — the same science behind Anki. Review cards just before you forget them. Streaks, progress bars, and XP keep you motivated.
+
+<b>.ib BUNDLE FORMAT — OPEN & PORTABLE</b>
+Study content lives in .ib files — an open ZIP format containing chapters (markdown), flashcards, MCQ quizzes, character data, comic strips, and audio. Create once, study anywhere. Bundles work fully offline after download.
+
+<b>MARKETPLACE</b>
+Browse and download free community bundles:
+• NCERT Physics Class 12 — Optics (with character Aria)
+• UPSC GS1 — Indian Geography
+• Logistics 101 — Supply Chain Fundamentals
+• Maritime Vocabulary — IMO Terms & Port Operations
+• Security Basics — Threat Detection & Response
+• More added regularly
+
+<b>OFFLINE FIRST</b>
+Everything syncs to your device. No connection? No problem. Progress syncs automatically when you reconnect. Review reminders work offline.
+
+<b>OPEN SOURCE — APACHE 2.0</b>
+All code is public. Self-host on your own server with a single Docker command. Your data stays on your infrastructure. No ads, no tracking, no data selling — ever.
+
+<b>FEATURES</b>
+• AI character tutors with TTS narration (device speech engine)
+• Comic strip chapter viewer
+• Spaced repetition flashcards (SM-2)
+• MCQ quiz engine with instant feedback
+• Offline-first with background sync
+• Multilingual (23 languages + RTL)
+• Classroom mode for teachers (Pro)
+• Universal File Vault for documents
+• Social Factory — turn any topic into LinkedIn/Twitter/WhatsApp content
+• Studio — create your own .ib bundles
+
+<b>PRIVACY</b>
+We collect no personal data. Anonymous usage analytics can be disabled in Settings. Self-hosted instances send no data anywhere.
+
+Source code: https://github.com/ankr-labs/ankr-interact
+Made in India · ANKR Labs · Apache 2.0

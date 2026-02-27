@@ -29,17 +29,39 @@
         "backgroundColor": "#0a0a0f"
       },
       "package": "in.ankr.interact",
+      "versionCode": 10000,
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 26,
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "RECORD_AUDIO",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "INTERNET",
-        "ACCESS_NETWORK_STATE"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.WAKE_LOCK"
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "interact.ankrlabs.in" },
+            { "scheme": "https", "host": "ankrinteract.com" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "ankrinteract" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -72,7 +94,9 @@
         "projectId": "ankr-interact-mobile"
       },
       "apiUrl": "https://interact.ankrlabs.in",
-      "bundleSpecVersion": "1.0"
+      "bundleSpecVersion": "2.0",
+      "releaseUrl": "https://github.com/ankr-labs/ankr-interact/releases/latest",
+      "fdroidPackage": "in.ankr.interact"
     },
     "updates": {
       "url": "https://u.expo.dev/ankr-interact-mobile",

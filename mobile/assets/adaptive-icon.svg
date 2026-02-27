@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- Open book left page -->
+  <path d="M80 130 L80 382 Q80 396 94 396 L254 396 L254 130 Q208 116 160 122 Q112 128 80 130 Z"
+        fill="url(#bookGrad)"/>
+  <rect x="251" y="130" width="10" height="266" fill="#4338ca" rx="2"/>
+  <!-- Open book right page -->
+  <path d="M432 130 L432 382 Q432 396 418 396 L258 396 L258 130 Q304 116 352 122 Q400 128 432 130 Z"
+        fill="url(#bookGrad)" opacity="0.8"/>
+  <!-- Sparkle -->
+  <polygon points="356,80 362,100 382,100 366,112 372,132 356,120 340,132 346,112 330,100 350,100"
+           fill="#f59e0b"/>
+</svg>
