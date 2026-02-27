@@ -100,9 +100,28 @@ pnpm run dev
 # → opens at http://localhost:3199
 ```
 
-### Option 3 — Mobile App
-- Android: [Google Play](#) (coming soon) | [Direct APK](#)
-- iOS: [TestFlight](#) (coming soon)
+### Option 3 — Mobile App (Expo)
+```bash
+cd mobile
+npm install
+# Start dev server
+npx expo start
+
+# Build APK (requires EAS account)
+eas build --platform android --profile preview
+```
+
+**App features:**
+- Offline-first SQLite vault (Drizzle ORM + expo-sqlite)
+- Import `.ib` bundles directly from your phone
+- SM-2 spaced repetition flashcards with streaks
+- AI Chat (connects to your self-hosted server)
+- Classroom join-by-code student view
+- Delta sync to your ANKR Interact server when online
+- Deep link: `ankrinteract://import?url=...`
+
+Android: [Google Play](#) (coming soon) | [Direct APK](#)
+iOS: [TestFlight](#) (coming soon)
 
 ---
 
@@ -251,7 +270,7 @@ bundle.ib  (ZIP archive)
 - [x] Phase 9 — Web platform (197 endpoints, 23 languages, full LMS)
 - [x] Phase A — OSS repo + Docker self-host ✅
 - [x] Phase B — `.ib` bundle format + export/import/player/QR ✅
-- [ ] Phase C — Mobile app (Expo, Android + iOS)
+- [x] Phase C — Mobile app (Expo, Android + iOS) ✅
 - [ ] Phase D — Sync engine (offline ↔ cloud)
 - [ ] Phase E — Bundle marketplace
 - [ ] Phase F — On-device AI (Llama)
