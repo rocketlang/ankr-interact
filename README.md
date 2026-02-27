@@ -271,7 +271,7 @@ bundle.ib  (ZIP archive)
 - [x] Phase A — OSS repo + Docker self-host ✅
 - [x] Phase B — `.ib` bundle format + export/import/player/QR ✅
 - [x] Phase C — Mobile app (Expo, Android + iOS) ✅
-- [ ] Phase D — Sync engine (offline ↔ cloud)
+- [x] Phase D — Sync engine (offline ↔ cloud) ✅ — see [SYNC-PROTOCOL.md](SYNC-PROTOCOL.md)
 - [ ] Phase E — Bundle marketplace
 - [ ] Phase F — On-device AI (Llama)
 
