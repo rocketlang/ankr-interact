@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Switch, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { db } from '../../src/db/client';
 import { settings, documents, bundles, flashcardCards } from '../../src/db/schema';
@@ -27,6 +27,12 @@ export default function SettingsScreen() {
   const { lastSyncedAt, pendingCount } = useSyncStore();
   const { isOnline, connectionType } = useNetworkStore();
 
+  // H5: BYOK state
+  const [byokKey, setByokKey] = useState('');
+  const [byokEnabled, setByokEnabled] = useState(false);
+  const [byokLoading, setByokLoading] = useState(false);
+  const [tierInfo, setTierInfo] = useState<{ tier: string; vaultUsedMB: number; vaultLimitMB: number } | null>(null);
+
   useEffect(() => {
     Promise.all([
       db.select({ c: documents.id }).from(documents).all(),
@@ -36,6 +42,16 @@ export default function SettingsScreen() {
 
     db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'language')).all()
       .then(r => r[0] && setLang(r[0].value));
+
+    // Load BYOK status and tier info from server
+    db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'server_url')).all().then(rows => {
+      const serverUrl = rows[0]?.value;
+      if (!serverUrl) return;
+      fetch(`${serverUrl}/api/studio/byok`).then(r => r.json()).then(d => setByokEnabled(!!d.enabled)).catch(() => {});
+      fetch(`${serverUrl}/api/studio/usage`).then(r => r.json()).then(d => {
+        setTierInfo({ tier: d.tier ?? 'free', vaultUsedMB: d.vaultUsedMB ?? 0, vaultLimitMB: d.vaultLimitMB ?? 500 });
+      }).catch(() => {});
+    });
   }, []);
 
   const saveLang = async (code: string) => {
@@ -128,9 +144,105 @@ export default function SettingsScreen() {
         <Text style={styles.aiNote}>Once downloaded, AI works fully offline — no server needed for flashcards, quizzes, and Q&A.</Text>
       </Section>
 
+      {/* H5: Plan & AI Key (BYOK) */}
+      <Section title="Plan & AI Key">
+        {/* Tier badge */}
+        {tierInfo && (
+          <View style={styles.tierCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Text style={styles.tierLabel}>{
+                tierInfo.tier === 'free' ? '🆓 Free Plan' :
+                tierInfo.tier === 'pro' ? '⭐ Pro Plan' :
+                tierInfo.tier === 'teams' ? '👥 Teams Plan' : '🏠 Self-Hosted'
+              }</Text>
+              {tierInfo.tier === 'free' && (
+                <Text style={styles.upgradeText}>Upgrade →</Text>
+              )}
+            </View>
+            {/* Vault bar */}
+            {tierInfo.vaultLimitMB > 0 && (
+              <>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <Text style={styles.muted}>Vault</Text>
+                  <Text style={styles.muted}>{tierInfo.vaultUsedMB.toFixed(0)} / {tierInfo.vaultLimitMB} MB</Text>
+                </View>
+                <View style={styles.progressBg}>
+                  <View style={[styles.progressFill, {
+                    width: `${Math.min((tierInfo.vaultUsedMB / tierInfo.vaultLimitMB) * 100, 100)}%`,
+                    backgroundColor: tierInfo.vaultUsedMB / tierInfo.vaultLimitMB > 0.85 ? '#ef4444' : '#6366f1',
+                  }]} />
+                </View>
+              </>
+            )}
+          </View>
+        )}
+
+        {/* BYOK */}
+        <Text style={[styles.sectionHint, { marginTop: 12, marginBottom: 6 }]}>
+          {byokEnabled
+            ? '✅ Your Anthropic API key is active — unlimited AI, no credits used.'
+            : 'Use your own Anthropic API key (sk-ant-…) for unlimited Studio AI with no monthly limits.'}
+        </Text>
+        <TextInput
+          style={styles.keyInput}
+          placeholder="sk-ant-api03-…"
+          placeholderTextColor="#4b5563"
+          value={byokKey}
+          onChangeText={setByokKey}
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+          <TouchableOpacity
+            style={[styles.byokBtn, { flex: 1 }]}
+            disabled={byokLoading || !byokKey}
+            onPress={async () => {
+              const rows = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'server_url')).all();
+              const serverUrl = rows[0]?.value;
+              if (!serverUrl) { Alert.alert('No Server', 'Set your server URL first.'); return; }
+              setByokLoading(true);
+              try {
+                const r = await fetch(`${serverUrl}/api/studio/byok`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ apiKey: byokKey }),
+                });
+                const d = await r.json();
+                if (!r.ok) { Alert.alert('Error', d.error ?? 'Failed'); return; }
+                setByokEnabled(true);
+                setByokKey('');
+                Alert.alert('BYOK Active', 'Your API key is saved. Studio AI is now unlimited.');
+              } catch (e) {
+                Alert.alert('Error', String(e));
+              } finally {
+                setByokLoading(false);
+              }
+            }}
+          >
+            {byokLoading ? <ActivityIndicator color="white" size="small" /> : <Text style={styles.byokBtnText}>Save Key</Text>}
+          </TouchableOpacity>
+          {byokEnabled && (
+            <TouchableOpacity
+              style={[styles.byokBtn, { backgroundColor: '#374151' }]}
+              onPress={async () => {
+                const rows = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'server_url')).all();
+                const serverUrl = rows[0]?.value;
+                if (!serverUrl) return;
+                await fetch(`${serverUrl}/api/studio/byok`, { method: 'DELETE' });
+                setByokEnabled(false);
+                Alert.alert('Key Removed', 'Your BYOK key has been deleted.');
+              }}
+            >
+              <Text style={styles.byokBtnText}>Remove</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Section>
+
       {/* About */}
       <Section title="About">
-        <Row label="Version" right={<Text style={styles.muted}>1.0.0 (Phase F)</Text>} />
+        <Row label="Version" right={<Text style={styles.muted}>1.0.0 (Phase H)</Text>} />
         <Row label="License" right={<Text style={styles.muted}>Apache 2.0</Text>} />
         <Row label="Made by" right={<Text style={styles.muted}>ANKR Labs, Gurgaon 🇮🇳</Text>} />
       </Section>
@@ -195,4 +307,14 @@ const styles = StyleSheet.create({
   downloadModelBtn: { backgroundColor: '#1d4ed8', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 8 },
   downloadModelText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   aiNote: { color: '#4b5563', fontSize: 11, marginTop: 6, lineHeight: 16 },
+  // H5 styles
+  tierCard: { margin: 12, marginTop: 4, backgroundColor: '#1e1b4b', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#4338ca33' },
+  tierLabel: { color: '#a5b4fc', fontWeight: '700', fontSize: 13 },
+  upgradeText: { color: '#6366f1', fontSize: 12, fontWeight: '600' },
+  progressBg: { height: 4, backgroundColor: '#1f2937', borderRadius: 2, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 2 },
+  sectionHint: { color: '#6b7280', fontSize: 12, lineHeight: 17, marginHorizontal: 12 },
+  keyInput: { marginHorizontal: 12, backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 10, padding: 10, color: '#e5e7eb', fontSize: 13, fontFamily: 'monospace' },
+  byokBtn: { backgroundColor: '#4f46e5', borderRadius: 8, padding: 10, alignItems: 'center' },
+  byokBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 });
