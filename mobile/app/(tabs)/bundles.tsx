@@ -15,8 +15,13 @@ import { eq } from 'drizzle-orm';
 import JSZip from 'jszip';
 import * as Crypto from 'expo-crypto';
 import OfflineBanner from '../../src/components/OfflineBanner';
+import { useNetworkStore } from '../../src/offline/network-monitor';
+import { db as settingsDb } from '../../src/db/client';
+import { settings } from '../../src/db/schema';
+import { eq as eqS } from 'drizzle-orm';
 
 interface BundleMeta { id: string; slug: string; name: string; description: string | null; subject: string | null; fileSize: number | null; importedAt: string; }
+interface MktBundle { slug: string; name: string; description: string; subject: string; language: string; priceInr: number; ratingAvg: number; downloadCount: number; }
 
 export default function BundlesScreen() {
   const router = useRouter();
@@ -24,6 +29,11 @@ export default function BundlesScreen() {
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [importing, setImporting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mktBundles, setMktBundles] = useState<MktBundle[]>([]);
+  const [mktLoading, setMktLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'local' | 'marketplace'>('local');
+  const { isOnline } = useNetworkStore();
+  const [serverUrl, setServerUrl] = useState('');
 
   const load = useCallback(async () => {
     const rows = await db.select({
@@ -44,7 +54,73 @@ export default function BundlesScreen() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    settingsDb.select({ value: settings.value }).from(settings).where(eqS(settings.key, 'server_url')).all()
+      .then(r => r[0] && setServerUrl(r[0].value));
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'marketplace' && isOnline && serverUrl) loadMarketplace();
+  }, [activeTab, isOnline, serverUrl]);
+
+  const loadMarketplace = async () => {
+    setMktLoading(true);
+    try {
+      const r = await fetch(`${serverUrl}/api/marketplace/bundles?limit=20&sort=popular`);
+      const d = await r.json();
+      setMktBundles(d.bundles || []);
+    } catch { /* offline */ } finally { setMktLoading(false); }
+  };
+
+  const downloadFromMarketplace = async (item: MktBundle) => {
+    if (!isOnline || !serverUrl) { Alert.alert('Offline', 'Connect to download bundles.'); return; }
+    try {
+      // initiate purchase (free bundles grant immediately)
+      const pr = await fetch(`${serverUrl}/api/marketplace/bundles/${item.slug}/purchase`, { method: 'POST' });
+      const pd = await pr.json();
+      if (pd.status === 'payment_required') {
+        Alert.alert('Paid Bundle', `This bundle costs ₹${item.priceInr}. Open on desktop to purchase.`);
+        return;
+      }
+      // download
+      const dest = (FileSystem.documentDirectory || '') + `bundles/${item.slug}.ib`;
+      await FileSystem.makeDirectoryAsync((FileSystem.documentDirectory || '') + 'bundles/', { intermediates: true });
+      const dl = await FileSystem.downloadAsync(`${serverUrl}/api/bundles/${item.slug}/download`, dest);
+      if (dl.status !== 200) throw new Error(`Download failed: ${dl.status}`);
+      // ingest the downloaded .ib
+      const content = await FileSystem.readAsStringAsync(dest, { encoding: FileSystem.EncodingType.Base64 });
+      const zip = await JSZip.loadAsync(Buffer.from(content, 'base64'));
+      const mf = zip.file('manifest.json');
+      if (!mf) throw new Error('Invalid bundle');
+      const manifest = JSON.parse(await mf.async('string'));
+      const now = new Date().toISOString();
+      await db.insert(bundles).values({
+        id: manifest.id || item.slug,
+        slug: manifest.slug || item.slug,
+        name: manifest.name || item.name,
+        description: manifest.description ?? item.description,
+        authorName: manifest.author?.name,
+        language: manifest.language || 'en',
+        subject: manifest.subject || item.subject,
+        tags: JSON.stringify(manifest.tags || []),
+        access: manifest.access || 'public',
+        license: manifest.license || 'Apache-2.0',
+        filePath: dest,
+        fileSize: null,
+        manifestJson: JSON.stringify(manifest),
+        importedAt: now,
+        isDownloaded: true,
+      }).onConflictDoNothing();
+      Alert.alert('Downloaded!', `"${item.name}" added to your library.`, [
+        { text: 'Play Now', onPress: () => { setActiveTab('local'); router.push(`/bundle/${item.slug}`); } },
+        { text: 'OK', style: 'cancel' },
+      ]);
+      load();
+    } catch (e: unknown) {
+      Alert.alert('Download Failed', e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const importBundle = async () => {
     const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
@@ -130,6 +206,53 @@ export default function BundlesScreen() {
     <View style={styles.container}>
       <OfflineBanner />
 
+      {/* Tab toggle */}
+      <View style={styles.tabRow}>
+        {(['local', 'marketplace'] as const).map(t => (
+          <TouchableOpacity key={t} style={[styles.tabBtn, activeTab === t && styles.tabBtnActive]} onPress={() => setActiveTab(t)}>
+            <Text style={[styles.tabBtnText, activeTab === t && styles.tabBtnTextActive]}>
+              {t === 'local' ? '📥 My Bundles' : '🛒 Marketplace'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Marketplace tab */}
+      {activeTab === 'marketplace' && (
+        <View style={{ flex: 1 }}>
+          {!isOnline && <View style={styles.offlineNote}><Text style={styles.offlineText}>Connect to browse marketplace</Text></View>}
+          {mktLoading && <ActivityIndicator style={{ marginTop: 40 }} color="#3b82f6" />}
+          <FlatList
+            data={mktBundles}
+            keyExtractor={b => b.slug}
+            contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 32 }}
+            onRefresh={loadMarketplace}
+            refreshing={mktLoading}
+            ListEmptyComponent={!mktLoading ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyEmoji}>🛒</Text>
+                <Text style={styles.emptyTitle}>{isOnline ? 'No bundles yet' : 'Offline'}</Text>
+                <Text style={styles.emptyHint}>{isOnline ? 'Check back soon for new knowledge bundles.' : 'Connect to browse the marketplace.'}</Text>
+              </View>
+            ) : null}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.card} onPress={() => downloadFromMarketplace(item)}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={[styles.cardSize, item.priceInr === 0 && { color: '#22c55e' }]}>{item.priceInr === 0 ? 'Free' : `₹${item.priceInr}`}</Text>
+                </View>
+                {item.subject && <Text style={styles.cardSub}>{item.subject} · {item.language?.toUpperCase()}</Text>}
+                {item.description && <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>}
+                <Text style={{ color: '#4b5563', fontSize: 10, marginTop: 8 }}>⬇ {item.downloadCount} downloads · ⭐ {item.ratingAvg?.toFixed(1)}</Text>
+                <Text style={[styles.playBtn, { color: '#22c55e' }]}>{item.priceInr === 0 ? 'Get Free ↓' : 'Buy & Download ↓'}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+
+      {/* Local tab */}
+      {activeTab === 'local' && <>
       <TouchableOpacity style={styles.importBtn} onPress={importBundle} disabled={importing}>
         {importing
           ? <ActivityIndicator color="#fff" size="small" />
@@ -173,12 +296,20 @@ export default function BundlesScreen() {
           );
         }}
       />
+      </>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0f' },
+  tabRow: { flexDirection: 'row', margin: 16, marginBottom: 0, gap: 8 },
+  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#111118', alignItems: 'center', borderWidth: 1, borderColor: '#1f1f2e' },
+  tabBtnActive: { backgroundColor: '#1d4ed8', borderColor: '#1d4ed8' },
+  tabBtnText: { color: '#6b7280', fontSize: 12, fontWeight: '600' },
+  tabBtnTextActive: { color: '#fff' },
+  offlineNote: { backgroundColor: '#422006', margin: 16, borderRadius: 10, padding: 10 },
+  offlineText: { color: '#fed7aa', fontSize: 12, textAlign: 'center' },
   importBtn: {
     margin: 16, backgroundColor: '#1d4ed8', borderRadius: 12,
     padding: 14, alignItems: 'center',
