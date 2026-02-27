@@ -221,11 +221,36 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
+## The `.ib` Bundle Format
+
+ANKR Interact introduces a portable knowledge format — the **Interact Bundle** (`.ib`).
+
+```
+bundle.ib  (ZIP archive)
+├── manifest.json     ← metadata, integrity hashes, author, license
+├── docs/             ← markdown documents with wiki-links
+├── assets/           ← images, PDFs, audio
+├── quizzes/          ← assessment JSON
+├── flashcards/       ← spaced repetition decks
+├── courses/          ← structured learning path definition
+└── canvas/           ← Excalidraw whiteboard snapshots
+```
+
+**How it works:**
+1. Author selects docs, quizzes, and flashcards from their vault
+2. Exports as `bundle.ib` — a signed, integrity-checked zip
+3. Shares via download link, QR code, or `ankrinteract://import?url=...` deep link
+4. Recipient imports on web or mobile — plays fully offline
+
+**See:** [BUNDLE-SPEC.md](BUNDLE-SPEC.md) for the complete format specification.
+
+---
+
 ## Roadmap
 
 - [x] Phase 9 — Web platform (197 endpoints, 23 languages, full LMS)
-- [ ] Phase A — OSS repo + Docker self-host (now)
-- [ ] Phase B — `.ib` bundle format + player
+- [x] Phase A — OSS repo + Docker self-host ✅
+- [x] Phase B — `.ib` bundle format + export/import/player/QR ✅
 - [ ] Phase C — Mobile app (Expo, Android + iOS)
 - [ ] Phase D — Sync engine (offline ↔ cloud)
 - [ ] Phase E — Bundle marketplace
