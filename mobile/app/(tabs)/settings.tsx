@@ -106,9 +106,31 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </Section>
 
+      {/* AI — On-Device Model */}
+      <Section title="AI — On-Device">
+        <Row label="On-device AI" right={<Text style={styles.muted}>Llama 3.2 1B</Text>} />
+        <TouchableOpacity style={styles.downloadModelBtn} onPress={async () => {
+          const { isOnline: online } = useNetworkStore.getState();
+          if (!online) { Alert.alert('Offline', 'Connect to download the AI model (~700 MB).'); return; }
+          const serverUrlRow = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'server_url')).all();
+          const serverUrl = serverUrlRow[0]?.value;
+          if (!serverUrl) { Alert.alert('No Server', 'Set your ANKR Interact server URL first.'); return; }
+          Alert.alert('Download AI Model',
+            'Download Llama 3.2 1B (~700 MB) for fully offline AI — flashcard generation, quiz creation, and Q&A without any server.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Download', onPress: () => router.push('/ai-model-download' as any) },
+            ]
+          );
+        }}>
+          <Text style={styles.downloadModelText}>📥 Download On-Device Model</Text>
+        </TouchableOpacity>
+        <Text style={styles.aiNote}>Once downloaded, AI works fully offline — no server needed for flashcards, quizzes, and Q&A.</Text>
+      </Section>
+
       {/* About */}
       <Section title="About">
-        <Row label="Version" right={<Text style={styles.muted}>1.0.0 (Phase C)</Text>} />
+        <Row label="Version" right={<Text style={styles.muted}>1.0.0 (Phase F)</Text>} />
         <Row label="License" right={<Text style={styles.muted}>Apache 2.0</Text>} />
         <Row label="Made by" right={<Text style={styles.muted}>ANKR Labs, Gurgaon 🇮🇳</Text>} />
       </Section>
@@ -170,4 +192,7 @@ const styles = StyleSheet.create({
   langTextActive: { color: '#fff', fontWeight: '600' },
   dangerBtn: { margin: 12, padding: 12, backgroundColor: '#1f1f2e', borderRadius: 10, alignItems: 'center' },
   dangerText: { color: '#ef4444', fontSize: 13, fontWeight: '600' },
+  downloadModelBtn: { backgroundColor: '#1d4ed8', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 8 },
+  downloadModelText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  aiNote: { color: '#4b5563', fontSize: 11, marginTop: 6, lineHeight: 16 },
 });
