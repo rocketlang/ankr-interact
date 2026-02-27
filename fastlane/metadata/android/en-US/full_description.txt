@@ -1,43 +1,41 @@
-ANKR Interact is a free, open source learning platform — think Obsidian + Duolingo + Google Classroom, but self-hostable and ad-free.
+ANKR Interact — the open-source knowledge OS that replaces five subscriptions with one app.
 
-<b>LEARN WITH AI CHARACTERS</b>
-Every study bundle can feature a cartoon AI tutor who narrates chapters aloud, celebrates your progress, and explains concepts through visual comic strips. Character voices are configurable — runs on your device's TTS, no internet needed.
+Obsidian + Notion + Google Classroom + Duolingo + Miro — offline-first, India-first, Apache 2.0.
 
-<b>SPACED REPETITION BUILT IN</b>
-Every flashcard deck uses the SM-2 algorithm — the same science behind Anki. Review cards just before you forget them. Streaks, progress bars, and XP keep you motivated.
+🧠 LEARN
+• AI Tutor powered by on-device Llama 3.2 (works offline)
+• Spaced repetition flashcards with streaks and progress
+• .ib Bundle Player: import full courses and play offline
+• Import from NCERT, SWAYAM, NPTEL, DIKSHA, YouTube
 
-<b>.ib BUNDLE FORMAT — OPEN & PORTABLE</b>
-Study content lives in .ib files — an open ZIP format containing chapters (markdown), flashcards, MCQ quizzes, character data, comic strips, and audio. Create once, study anywhere. Bundles work fully offline after download.
+✏️ CREATE
+• Vault: personal knowledge base with Markdown + wiki-links
+• AI Bundle Generator: type a topic, get a full course in 30 sec
+• Character Studio: create AI cartoon teachers
+• Comic Strip Studio: turn topics into illustrated scripts
+• Social Factory: one topic → LinkedIn + Twitter + WhatsApp
 
-<b>MARKETPLACE</b>
-Browse and download free community bundles:
-• NCERT Physics Class 12 — Optics (with character Aria)
-• UPSC GS1 — Indian Geography
-• Logistics 101 — Supply Chain Fundamentals
-• Maritime Vocabulary — IMO Terms & Port Operations
-• Security Basics — Threat Detection & Response
-• More added regularly
+🏫 TEACH
+• Classroom: assignments, grading, attendance tracking
+• Bundle Marketplace: sell or share your bundles (70% revenue)
+• Live sessions, peer groups, team projects
 
-<b>OFFLINE FIRST</b>
-Everything syncs to your device. No connection? No problem. Progress syncs automatically when you reconnect. Review reminders work offline.
+📴 OFFLINE FIRST
+• Zero internet required: read, study, create, edit
+• Download bundles and play completely offline
+• Sync to cloud when back online (optional, free)
 
-<b>OPEN SOURCE — APACHE 2.0</b>
-All code is public. Self-host on your own server with a single Docker command. Your data stays on your infrastructure. No ads, no tracking, no data selling — ever.
+🇮🇳 INDIA FIRST
+• ₹299/mo Learner Pro (vs ₹800-2000/mo for competitors)
+• SWAYAM, NPTEL, DIKSHA direct integration
+• Optimized for low bandwidth and older Android devices
 
-<b>FEATURES</b>
-• AI character tutors with TTS narration (device speech engine)
-• Comic strip chapter viewer
-• Spaced repetition flashcards (SM-2)
-• MCQ quiz engine with instant feedback
-• Offline-first with background sync
-• Multilingual (23 languages + RTL)
-• Classroom mode for teachers (Pro)
-• Universal File Vault for documents
-• Social Factory — turn any topic into LinkedIn/Twitter/WhatsApp content
-• Studio — create your own .ib bundles
+🔓 OPEN SOURCE
+• Apache 2.0 — fork it, extend it, self-host on your school's server
+• No ads, no tracking, no data harvesting
+• .ib portable format — your content, your device, forever
 
-<b>PRIVACY</b>
-We collect no personal data. Anonymous usage analytics can be disabled in Settings. Self-hosted instances send no data anywhere.
+Category: Education
+Content Rating: Everyone
 
-Source code: https://github.com/ankr-labs/ankr-interact
-Made in India · ANKR Labs · Apache 2.0
+Permissions required: Storage (for offline bundles), Camera (optional, for image capture), Microphone (optional, for voice notes)

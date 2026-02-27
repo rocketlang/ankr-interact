@@ -1,0 +1,38 @@
+ANKR Interact is the open-source knowledge OS that replaces five subscriptions with one app.
+
+Replace Obsidian + Notion + Google Classroom + Duolingo + Miro — all offline-first, all in one place.
+
+── LEARN ──────────────────────────────
+• AI Tutor — ask questions over your notes, bundles, and textbooks
+• Spaced Repetition Flashcards with streaks and progress tracking
+• Bundle Player — import .ib bundles (courses + flashcards + quiz in one file)
+• NCERT, SWAYAM, DIKSHA, and YouTube content → one-tap import
+
+── CREATE ─────────────────────────────
+• Vault — your personal knowledge base with Markdown editor and wiki-links
+• AI Bundle Generator — type a topic, get a full course in 30 seconds
+• Character Studio — AI cartoon teachers with unique personalities
+• Comic Strip Studio — turn topics into illustrated comic scripts
+• Social Factory — one topic → LinkedIn, Twitter thread, WhatsApp message
+
+── TEACH ──────────────────────────────
+• Classroom — create assignments, grade submissions, track attendance
+• Bundle Marketplace — sell or share your bundles with the world (70% revenue)
+• Live sessions, peer learning groups, and team projects
+
+── OFFLINE FIRST ──────────────────────
+• Everything works with zero internet: read, study, edit, create
+• Download bundles and play them completely offline
+• Sync to cloud when you're back online (optional)
+
+── OPEN SOURCE ────────────────────────
+• Apache 2.0 — fork it, extend it, self-host it forever
+• No ads, no tracking, no lock-in
+• .ib portable bundle format — your content, your device
+
+── INDIA FIRST ─────────────────────────
+• ₹299/mo Learner Pro (vs $10+/mo for competitors)
+• SWAYAM, NPTEL, DIKSHA integration
+• Works on 2G — offline-first design for real Indian connectivity
+
+Download free. Start learning today.

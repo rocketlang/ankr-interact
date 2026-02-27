@@ -363,3 +363,193 @@ export function bundleSummary(manifest: BundleManifest): string {
   if (c.canvas?.length)     parts.push(`${c.canvas.length} canvas`);
   return parts.join(' · ') || 'Empty bundle';
 }
+
+// ── Versioning (B1-3) ─────────────────────────────────────────────────────────
+
+export type BumpType = 'major' | 'minor' | 'patch';
+
+/**
+ * Parse a semver string into [major, minor, patch] numbers.
+ * Throws if the version string is not valid semver.
+ */
+export function parseSemver(version: string): [number, number, number] {
+  const m = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!m) throw new Error(`Invalid semver: "${version}"`);
+  return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)];
+}
+
+/**
+ * Increment a semver string.
+ *   major: 1.2.3 → 2.0.0
+ *   minor: 1.2.3 → 1.3.0
+ *   patch: 1.2.3 → 1.2.4
+ */
+export function bumpVersion(version: string, bump: BumpType): string {
+  const [major, minor, patch] = parseSemver(version);
+  if (bump === 'major') return `${major + 1}.0.0`;
+  if (bump === 'minor') return `${major}.${minor + 1}.0`;
+  return `${major}.${minor}.${patch + 1}`;
+}
+
+/**
+ * Compare two semver strings.
+ * Returns -1 if a < b, 0 if equal, 1 if a > b.
+ */
+export function compareSemver(a: string, b: string): -1 | 0 | 1 {
+  const [aMaj, aMin, aPat] = parseSemver(a);
+  const [bMaj, bMin, bPat] = parseSemver(b);
+  if (aMaj !== bMaj) return aMaj < bMaj ? -1 : 1;
+  if (aMin !== bMin) return aMin < bMin ? -1 : 1;
+  if (aPat !== bPat) return aPat < bPat ? -1 : 1;
+  return 0;
+}
+
+// ── Types for bundle diff ─────────────────────────────────────────────────────
+
+export interface BundleFileDiff {
+  path: string;
+  change: 'added' | 'removed' | 'modified' | 'unchanged';
+  /** SHA-256 of old content (undefined for added files) */
+  oldHash?: string;
+  /** SHA-256 of new content (undefined for removed files) */
+  newHash?: string;
+}
+
+export interface BundleDiff {
+  fromVersion: string;
+  toVersion: string;
+  /** Semver bump level inferred from file changes */
+  bumpLevel: BumpType;
+  /** Summary counts */
+  added: number;
+  removed: number;
+  modified: number;
+  unchanged: number;
+  files: BundleFileDiff[];
+  /** Manifest fields that changed (excluding integrity/signature) */
+  manifestChanges: Array<{ field: string; from: unknown; to: unknown }>;
+}
+
+/**
+ * Diff two .ib bundles and return a structured change report.
+ * Compares files by SHA-256 hash — does not require text content.
+ *
+ * Bump level heuristic:
+ *   - Any doc/quiz/flashcard removed → major
+ *   - Any doc/quiz/flashcard added or modified → minor
+ *   - Only asset/metadata changes → patch
+ */
+export async function diffBundles(oldBuffer: Buffer, newBuffer: Buffer): Promise<BundleDiff> {
+  const [oldUnpacked, newUnpacked] = await Promise.all([
+    unpackBundle(oldBuffer),
+    unpackBundle(newBuffer),
+  ]);
+
+  const oldManifest = oldUnpacked.manifest;
+  const newManifest = newUnpacked.manifest;
+
+  // Build hash maps: path → sha256
+  const oldHashes = new Map<string, string>(
+    oldUnpacked.files.map(f => [f.path, sha256(bufferOf(f.content))]),
+  );
+  const newHashes = new Map<string, string>(
+    newUnpacked.files.map(f => [f.path, sha256(bufferOf(f.content))]),
+  );
+
+  const allPaths = new Set([...oldHashes.keys(), ...newHashes.keys()]);
+  const files: BundleFileDiff[] = [];
+
+  for (const p of allPaths) {
+    const oldHash = oldHashes.get(p);
+    const newHash = newHashes.get(p);
+    if (!oldHash) {
+      files.push({ path: p, change: 'added', newHash });
+    } else if (!newHash) {
+      files.push({ path: p, change: 'removed', oldHash });
+    } else if (oldHash !== newHash) {
+      files.push({ path: p, change: 'modified', oldHash, newHash });
+    } else {
+      files.push({ path: p, change: 'unchanged', oldHash, newHash });
+    }
+  }
+
+  // Count changes
+  const added     = files.filter(f => f.change === 'added').length;
+  const removed   = files.filter(f => f.change === 'removed').length;
+  const modified  = files.filter(f => f.change === 'modified').length;
+  const unchanged = files.filter(f => f.change === 'unchanged').length;
+
+  // Infer bump level
+  const isContentPath = (p: string) =>
+    p.startsWith('docs/') || p.startsWith('quizzes/') || p.startsWith('flashcards/') || p.startsWith('courses/');
+
+  let bumpLevel: BumpType = 'patch';
+  if (files.some(f => f.change === 'removed' && isContentPath(f.path))) {
+    bumpLevel = 'major';
+  } else if (files.some(f => (f.change === 'added' || f.change === 'modified') && isContentPath(f.path))) {
+    bumpLevel = 'minor';
+  }
+
+  // Detect manifest field changes (skip internal fields)
+  const SKIP_FIELDS = new Set(['integrity', 'signature', 'updated_at', 'created_at', 'id']);
+  const manifestChanges: BundleDiff['manifestChanges'] = [];
+  const allFields = new Set([
+    ...Object.keys(oldManifest),
+    ...Object.keys(newManifest),
+  ]);
+  for (const field of allFields) {
+    if (SKIP_FIELDS.has(field)) continue;
+    const oldVal = (oldManifest as Record<string, unknown>)[field];
+    const newVal = (newManifest as Record<string, unknown>)[field];
+    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+      manifestChanges.push({ field, from: oldVal, to: newVal });
+    }
+  }
+
+  return {
+    fromVersion: oldManifest.version,
+    toVersion: newManifest.version,
+    bumpLevel,
+    added,
+    removed,
+    modified,
+    unchanged,
+    files,
+    manifestChanges,
+  };
+}
+
+/**
+ * Bump the version of an existing .ib bundle and repack it.
+ *
+ * @param buffer    The original .ib buffer
+ * @param bump      'major' | 'minor' | 'patch'
+ * @param changelog Optional changelog entry to embed in manifest description
+ * @param signKey   Re-sign with this key after bump (preserves signing)
+ * @returns         New .ib buffer with incremented version + updated timestamps
+ */
+export async function bumpBundleVersion(
+  buffer: Buffer,
+  bump: BumpType,
+  changelog?: string,
+  signKey?: string,
+): Promise<Buffer> {
+  const { manifest, files } = await unpackBundle(buffer);
+
+  const newVersion = bumpVersion(manifest.version, bump);
+
+  const updatedManifest = {
+    ...manifest,
+    version: newVersion,
+    description: changelog
+      ? `${manifest.description}\n\n[v${newVersion}] ${changelog}`.trim()
+      : manifest.description,
+  };
+
+  return packBundle({
+    manifest: updatedManifest,
+    files,
+    signKey: signKey ?? (manifest.signature ? undefined : undefined), // re-sign only if key supplied
+    interactVersion: manifest.ankr_interact_version,
+  });
+}

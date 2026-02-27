@@ -1,0 +1,12 @@
+v1.0.0 — Initial Release
+
+• AI Tutor with on-device Llama 3.2 (offline Q&A)
+• .ib Bundle format: import, play, and share full courses offline
+• Spaced repetition flashcards with daily streaks
+• Vault editor: Markdown + wiki-links [[like this]]
+• SWAYAM, DIKSHA, and YouTube → .ib bundle import
+• Bundle Marketplace with Razorpay payment
+• Classroom: assignments, attendance, live sessions
+• Character Studio: create AI cartoon teachers
+• Full offline mode — works on 2G
+• Apache 2.0 open source — self-host forever

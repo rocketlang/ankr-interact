@@ -1,5 +1,5 @@
 {
-  "name": "ankr-interact",
+  "name": "@ankr/interact",
   "version": "1.0.0",
   "description": "Open-source knowledge OS — Obsidian + Notion + NotebookLM + Google Classroom + Duolingo + Miro in one app",
   "license": "Apache-2.0",
@@ -8,6 +8,35 @@
     "url": "https://github.com/rocketlang/ankr-interact"
   },
   "homepage": "https://interact.ankrlabs.in",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist/",
+    "src/bundles/",
+    "src/config/",
+    "BUNDLE-SPEC.md",
+    "BUNDLE-SPEC-V2.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "main": "./dist/server/index.js",
+  "module": "./src/bundles/bundle-lib.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs"
+    },
+    "./bundles": {
+      "import": "./dist/bundles/bundle-lib.js",
+      "types": "./dist/bundles/bundle-lib.d.ts"
+    },
+    "./config": {
+      "import": "./dist/config/features.js",
+      "types": "./dist/config/features.d.ts"
+    }
+  },
   "keywords": [
     "obsidian-alternative",
     "notion-alternative",
@@ -35,7 +64,13 @@
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "seed:demo": "tsx scripts/seed-demo.ts",
-    "bundle:validate": "tsx scripts/validate-bundle.ts",
+    "interact:validate": "tsx scripts/interact-validate-bundle.ts",
+    "interact:bump": "tsx scripts/interact-bump-bundle.ts bump",
+    "interact:diff": "tsx scripts/interact-bump-bundle.ts diff",
+    "prepublishOnly": "npm run build",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run"
