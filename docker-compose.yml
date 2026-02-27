@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  interact:
+    image: ghcr.io/rocketlang/ankr-interact:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3199}:3199"
+    environment:
+      PORT: 3199
+      DATABASE_URL: postgresql://interact:${DB_PASSWORD:-interact}@postgres:5432/interact
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-min-32-chars}
+      AI_PROXY_URL: ${AI_PROXY_URL:-http://ai-proxy:4444}
+      AI_API_KEY: ${AI_API_KEY:-}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - interact_uploads:/app/data/uploads
+      - interact_vault:/app/data/vault
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3199/api/monitoring/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: interact
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-interact}
+      POSTGRES_DB: interact
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U interact"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: local AI via Ollama (remove if using cloud AI)
+  ai-proxy:
+    image: ollama/ollama:latest
+    ports:
+      - "4444:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    profiles:
+      - ai
+
+volumes:
+  postgres_data:
+  interact_uploads:
+  interact_vault:
+  ollama_models:

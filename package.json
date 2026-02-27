@@ -1,0 +1,46 @@
+{
+  "name": "ankr-interact",
+  "version": "1.0.0",
+  "description": "Open-source knowledge OS — Obsidian + Notion + NotebookLM + Google Classroom + Duolingo + Miro in one app",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rocketlang/ankr-interact"
+  },
+  "homepage": "https://interact.ankrlabs.in",
+  "keywords": [
+    "obsidian-alternative",
+    "notion-alternative",
+    "lms",
+    "knowledge-graph",
+    "wiki",
+    "flashcards",
+    "spaced-repetition",
+    "classroom",
+    "whiteboard",
+    "self-hosted",
+    "offline-first",
+    "open-source",
+    "edtech"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:client": "vite",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:client": "vite build",
+    "start": "node dist/server/index.js",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "bundle:validate": "tsx scripts/validate-bundle.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

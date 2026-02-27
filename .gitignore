@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+*.local
+data/uploads/
+data/vault/
+*.db
+*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+logs/
+*.log
+
+# Build
+.turbo/
+.cache/
