@@ -84,3 +84,6 @@ By contributing, you agree your contributions will be licensed under Apache 2.0.
 ---
 
 Questions? Open a [Discussion](https://github.com/rocketlang/ankr-interact/discussions) or join our Discord.
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

@@ -203,3 +203,6 @@ v1 bundles remain fully compatible. The v2 player checks `manifest.version`:
 | Comic strips | — | ✅ |
 | Social content view | — | ✅ |
 | Source vault files | — | ✅ |
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

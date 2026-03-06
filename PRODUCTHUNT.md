@@ -107,3 +107,6 @@ AMA in the comments!
 - **Android APK:** https://github.com/ankr-labs/ankr-interact/releases/latest
 - **Self-hosting guide:** https://github.com/ankr-labs/ankr-interact/blob/main/SELF_HOSTING.md
 - **Bundle spec:** https://github.com/ankr-labs/ankr-interact/blob/main/BUNDLE-SPEC.md
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

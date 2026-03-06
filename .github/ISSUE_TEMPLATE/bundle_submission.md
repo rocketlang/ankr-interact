@@ -30,3 +30,6 @@ assignees: ''
 
 **PR link**
 Link to the PR adding this bundle to `/bundles/templates/`
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

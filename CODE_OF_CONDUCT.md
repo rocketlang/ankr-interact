@@ -26,3 +26,6 @@ Instances of abusive behavior may be reported to the project maintainers at **he
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

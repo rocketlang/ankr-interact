@@ -327,3 +327,6 @@ The spec version (`manifest.spec`) follows semver. Breaking changes increment th
 ---
 
 *ANKR Labs — Gurgaon | Apache 2.0*
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

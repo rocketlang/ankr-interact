@@ -208,3 +208,6 @@ lsof -ti:3199 | xargs kill -9
 ---
 
 For support, open an [issue](https://github.com/rocketlang/ankr-interact/issues) or join our [Discord](#).
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

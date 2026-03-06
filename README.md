@@ -287,3 +287,6 @@ Cloud sync, AI tutor, and marketplace features are available under ANKR Cloud Te
 ---
 
 **Made with care in Gurgaon, India 🇮🇳 by [ANKR Labs](https://ankrlabs.in)**
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

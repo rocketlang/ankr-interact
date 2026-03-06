@@ -141,3 +141,6 @@ mobile_flashcard_review  — SM-2 review history
 ```
 
 All tables use `CREATE TABLE IF NOT EXISTS` — safe to re-run, no data loss.
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

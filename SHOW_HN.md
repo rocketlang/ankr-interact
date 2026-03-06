@@ -132,3 +132,6 @@ PRs welcome — especially for OPDS catalog support, better conflict resolution,
 
 **"Self-hosting?"**
 > `git clone https://github.com/ankr-labs/interact && docker compose up` — ~2 minutes including DB migrations. See `SELF_HOSTING.md`. Requires Docker, 2GB RAM (4GB recommended if running the on-device Llama model). PostgreSQL included in the compose file. AI features need an Anthropic API key or work with the local llama.rn runtime.
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*

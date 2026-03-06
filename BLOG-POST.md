@@ -208,3 +208,6 @@ If you're a teacher who has been patching together five apps for your students, 
 *ANKR Labs is based in Gurgaon, India. We build open-source infrastructure for logistics, learning, and intelligence. ANKR Interact is Apache 2.0.*
 
 *Reach us at [hello@ankrlabs.in](mailto:hello@ankrlabs.in) or open an issue on GitHub.*
+
+---
+*Co-authored by Capt Anil Kumar Sharma, Powerp Box IT Solutions Pvt Ltd*
