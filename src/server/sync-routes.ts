@@ -20,6 +20,7 @@ import { prisma } from './db.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+// @rule:ANKR-001 — sync-routes
 interface Mutation {
   entityType: 'document' | 'bundle_progress' | 'task' | 'flashcard_review';
   entityId: string;
@@ -71,20 +72,21 @@ async function applyDocument(userId: string, entityId: string, operation: string
       metadata: { source: 'mobile', bundleSlug: payload.bundleSlug ?? null, ...(payload.metadata ?? {}) },
     };
 
+    // Find existing doc by slug — needed for conflict check and upsert-by-id
+    const existing = await (prisma as any).document.findFirst({ where: { slug: entityId, userId }, select: { id: true, updatedAt: true } });
+
     // Check server version for conflict detection
-    if (payload.clientTs) {
-      const serverDoc = await (prisma as any).document.findFirst({ where: { slug: entityId, userId }, select: { updatedAt: true } });
-      if (serverDoc?.updatedAt && new Date(payload.clientTs) < serverDoc.updatedAt) {
-        // Server is newer — conflict, keep server version
-        return { entityType: 'document', entityId, status: 'conflict', serverTs: serverDoc.updatedAt.toISOString(), reason: 'server_newer' };
+    if (payload.clientTs && existing?.updatedAt) {
+      if (new Date(payload.clientTs) < existing.updatedAt) {
+        return { entityType: 'document', entityId, status: 'conflict', serverTs: existing.updatedAt.toISOString(), reason: 'server_newer' };
       }
     }
 
-    await (prisma as any).document.upsert({
-      where: { slug: entityId },
-      create: { ...data, createdAt: new Date() },
-      update: data,
-    });
+    if (existing?.id) {
+      await (prisma as any).document.update({ where: { id: existing.id }, data });
+    } else {
+      await (prisma as any).document.create({ data: { ...data, createdAt: new Date() } });
+    }
 
     return { entityType: 'document', entityId, status: 'ok', serverTs: new Date().toISOString() };
   } catch (e: any) {
